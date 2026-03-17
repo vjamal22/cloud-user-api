@@ -15,9 +15,24 @@ def lambda_handler(event, context):
             })
         }
 
+    workout_plan = [
+        "Day 1: Full Body Workout",
+        "Day 2: Cardio",
+        "Day 3: Rest",
+        "Day 4: Upper Body",
+        "Day 5: Lower Body"
+    ]
+
+    meal_plan = [
+        "Breakfast: Oatmeal and fruit",
+        "Lunch: Grilled chicken salad",
+        "Dinner: Salmon with vegetables"
+    ]
+
     return {
         "statusCode": 200,
         "body": json.dumps({
-            "message": "User profile stored successfully"
+            "workout_plan": workout_plan,
+            "meal_plan": meal_plan
         })
     }
