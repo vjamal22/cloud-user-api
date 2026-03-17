@@ -1,0 +1,68 @@
+{
+  "jobId": "job-12345",
+  "status": "COMPLETED",
+  "plan": {
+    "planId": "plan-abc123",
+    "durationWeeks": 12,
+    "generatedAt": "2026-02-16T13:50:00Z",
+    "workoutPlan": {
+      "weeks": [
+        {
+          "weekNumber": 1,
+          "focus": "Hypertrophy",
+          "days": [
+            {
+              "dayNumber": 1,
+              "workoutType": "Upper Body",
+              "exercises": [
+                {
+                  "name": "Bench Press",
+                  "sets": 4,
+                  "reps": "8-10",
+                  "restSeconds": 90
+                },
+                {
+                  "name": "Bent Over Row",
+                  "sets": 4,
+                  "reps": "8-10",
+                  "restSeconds": 90
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "mealPlan": {
+      "weeks": [
+        {
+          "weekNumber": 1,
+          "days": [
+            {
+              "dayNumber": 1,
+              "totalCalories": 2800,
+              "meals": [
+                {
+                  "mealType": "Breakfast",
+                  "name": "Oats with Whey Protein",
+                  "calories": 600,
+                  "proteinGrams": 40,
+                  "carbsGrams": 70,
+                  "fatsGrams": 15
+                },
+                {
+                  "mealType": "Lunch",
+                  "name": "Grilled Chicken with Rice",
+                  "calories": 750,
+                  "proteinGrams": 55,
+                  "carbsGrams": 80,
+                  "fatsGrams": 20
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

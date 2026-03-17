@@ -1,0 +1,21 @@
+{
+  "requestVersion": "1.0",
+  "userProfile": {
+    "age": 30,
+    "gender": "male",
+    "weightKg": 82,
+    "fitnessLevel": "intermediate",
+    "primaryGoal": "muscle_gain"
+  },
+  "workoutPreferences": {
+    "availableEquipment": ["dumbbells", "barbell"],
+    "weeklyTrainingDays": 4,
+    "sessionDurationMinutes": 60,
+    "injuries": ["left_shoulder"]
+  },
+  "nutritionPreferences": {
+    "dietaryPreference": "high_protein",
+    "foodAllergies": ["peanuts"],
+    "calorieTarget": 2800
+  }
+}

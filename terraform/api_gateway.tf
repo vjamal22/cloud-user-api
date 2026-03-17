@@ -36,7 +36,7 @@ resource "aws_api_gateway_integration" "post_users_lambda" {
 
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
-  uri                     = aws_lambda_function.user_data_lambda.invoke_arn
+ uri = aws_lambda_function.store_preferences_lambda.invoke_arn
 }
 
 # -------------------------
@@ -54,8 +54,7 @@ resource "aws_api_gateway_method" "post_preferences" {
   resource_id   = aws_api_gateway_resource.preferences.id
   http_method   = "POST"
 
-  authorization = "COGNITO_USER_POOLS"
-  authorizer_id = aws_api_gateway_authorizer.cognito_authorizer.id
+  authorization = "NONE"
 }
 
 resource "aws_api_gateway_integration" "post_preferences_lambda" {
@@ -75,7 +74,7 @@ resource "aws_api_gateway_integration" "post_preferences_lambda" {
 resource "aws_lambda_permission" "allow_apigateway_invoke_users" {
   statement_id  = "AllowAPIGatewayInvokeUsers"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.user_data_lambda.function_name
+  function_name = aws_lambda_function.store_preferences_lambda.function_name
   principal     = "apigateway.amazonaws.com"
 
   source_arn = "${aws_api_gateway_rest_api.user_api.execution_arn}/*/POST/users"
@@ -108,13 +107,14 @@ resource "aws_lambda_permission" "allow_apigateway_invoke_preferences" {
     ]))
   }
 
-  lifecycle {
+  stage_name = "dev"
+
+lifecycle {
     create_before_destroy = true
   }
 }
-
-
-resource "aws_api_gateway_stage" "dev" {
+  
+  resource "aws_api_gateway_stage" "dev" {
   rest_api_id   = aws_api_gateway_rest_api.user_api.id
   deployment_id = aws_api_gateway_deployment.user_api_deployment.id
   stage_name    = "dev"

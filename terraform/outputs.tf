@@ -3,7 +3,7 @@ output "dynamodb_table_name" {
 }
 
 output "lambda_function_name" {
-  value = aws_lambda_function.user_data_lambda.function_name
+  value = aws_lambda_function.store_preferences_lambda.function_name
 }
 
 output "user_pool_id" {
