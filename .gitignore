@@ -8,6 +8,7 @@ terraform.tfstate.backup
 # Python
 __pycache__/
 *.pyc
+venv/
 
 # OS files
 .DS_Store
@@ -15,3 +16,6 @@ Thumbs.db
 
 # Lambda build artifacts
 *.zip
+
+# Environment files
+.env
