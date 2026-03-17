@@ -1,0 +1,57 @@
+# Cloud-Native Fitness Experience — Phase 3
+
+## Overview
+Phase 3 introduces intelligent plan generation into the system.
+
+Building on Phase 2 (secure user data ingestion), this phase transforms stored user preferences into personalized workout and meal plans using a serverless architecture.
+
+---
+
+## Architecture
+Client → API Gateway → Lambda → DynamoDB
+
+- **API Gateway**: Exposes POST /generate-plan endpoint  
+- **Lambda**: Processes user input and generates plans  
+- **DynamoDB**: Stores user profile data  
+
+---
+
+## Key Features
+- Serverless plan generation using AWS Lambda  
+- Structured JSON input/output contract  
+- Real-time response via synchronous API design  
+- Input validation and error handling  
+
+---
+
+## Challenges & Solutions
+
+**Challenge:** SageMaker added unnecessary complexity  
+**Solution:** Pivoted to Lambda for faster deployment and lower cost  
+
+**Challenge:** Input validation  
+**Solution:** Added checks for required fields (user_id, profile_data)  
+
+**Challenge:** API deployment inconsistencies  
+**Solution:** Implemented Terraform deployment triggers  
+
+---
+
+## Cost & Scalability
+- No idle infrastructure  
+- Pay-per-request execution  
+- Fully serverless architecture  
+- Automatically scales with demand  
+
+---
+
+## Outcome
+- Personalized workout and meal plan generation  
+- Clean API-driven architecture  
+- Cost-efficient and scalable design  
+- Production-ready Infrastructure as Code  
+
+---
+
+## Next Phase
+Phase 4 will introduce media upload and analysis using AWS S3 and Rekognition.
