@@ -1,19 +1,12 @@
 import requests
 import json
 
-url = "https://lu4xapp41c.execute-api.us-east-1.amazonaws.com/dev/users"
+url = "https://17u9ta4fi2.execute-api.us-east-1.amazonaws.com/dev/upload"
 headers = {"Content-Type": "application/json"}
 
-# CORRECT format for your Lambda
 payload = {
-    "user_id": "testuser001",
-    "profile_data": {
-        "goal": "muscle gain",
-        "mood": "motivated",
-        "allergies": "none"
-    }
+    "image_name": "VD 1.png"
 }
-
 print("Sending JSON:", json.dumps(payload))
 
 response = requests.post(url, headers=headers, json=payload)

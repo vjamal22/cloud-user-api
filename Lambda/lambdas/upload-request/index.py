@@ -3,23 +3,24 @@ import boto3
 
 rekognition = boto3.client("rekognition")
 dynamodb = boto3.resource("dynamodb")
+
 table = dynamodb.Table("analysis_results")
 
 def lambda_handler(event, context):
+    bucket_name = "fitness-app-media-jamalv-2026"
+
+    body = json.loads(event.get("body", "{}"))
+    image_name = body.get("image_name")
+
+    if not image_name:
+        return {
+            "statusCode": 400,
+            "body": json.dumps({
+                "error": "image_name is required"
+            })
+        }
+
     try:
-        bucket_name = "fitness-app-media-jamalv-2026"
-
-        body = json.loads(event.get("body", "{}"))
-        image_name = body.get("image_name")
-
-        if not image_name:
-            return {
-                "statusCode": 400,
-                "body": json.dumps({
-                    "message": "image_name is required"
-                })
-            }
-
         response = rekognition.detect_labels(
             Image={
                 "S3Object": {
@@ -27,8 +28,6 @@ def lambda_handler(event, context):
                     "Name": image_name
                 }
             },
-            MaxLabels=5
-        )
             MaxLabels=5
         )
 
@@ -59,7 +58,6 @@ def lambda_handler(event, context):
         return {
             "statusCode": 500,
             "body": json.dumps({
-                "message": "Analysis failed",
                 "error": str(e)
             })
         }

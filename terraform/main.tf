@@ -14,6 +14,21 @@ resource "aws_dynamodb_table" "user_profiles" {
 }
 
 ###################################
+# New DynamoDB Table for Analysis Results
+###################################
+
+resource "aws_dynamodb_table" "analysis_results" {
+  name         = "analysis_results"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "analysis_id"
+
+  attribute {
+    name = "analysis_id"
+    type = "S"
+  }
+}
+
+###################################
 # IAM Role for Lambda
 ###################################
 
@@ -42,7 +57,7 @@ resource "aws_lambda_function" "store_preferences_lambda" {
   function_name = "store-user-preferences"
 
   filename         = "../Lambda/plan_generator.zip"
- source_code_hash = timestamp()
+  source_code_hash = timestamp()
 
   handler = "plan_generator.lambda_handler"
   runtime = "python3.11"

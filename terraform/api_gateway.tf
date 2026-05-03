@@ -13,15 +13,6 @@ resource "aws_api_gateway_resource" "users" {
   path_part   = "users"
 }
 
-resource "aws_api_gateway_authorizer" "cognito_authorizer" {
-  name            = "cognito-authorizer"
-  rest_api_id     = aws_api_gateway_rest_api.user_api.id
-  type            = "COGNITO_USER_POOLS"
-  provider_arns   = [aws_cognito_user_pool.user_pool.arn]
-  identity_source = "method.request.header.Authorization"
-}
-
-
 resource "aws_api_gateway_method" "post_users" {
   rest_api_id   = aws_api_gateway_rest_api.user_api.id
   resource_id   = aws_api_gateway_resource.users.id
@@ -36,7 +27,47 @@ resource "aws_api_gateway_integration" "post_users_lambda" {
 
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
- uri = aws_lambda_function.store_preferences_lambda.invoke_arn
+  uri                     = aws_lambda_function.store_preferences_lambda.invoke_arn
+}
+
+# -------------------------
+# UPLOAD RESOURCE
+# -------------------------
+
+resource "aws_api_gateway_resource" "upload" {
+  rest_api_id = aws_api_gateway_rest_api.user_api.id
+  parent_id   = aws_api_gateway_rest_api.user_api.root_resource_id
+  path_part   = "upload"
+}
+
+resource "aws_api_gateway_method" "post_upload" {
+  rest_api_id   = aws_api_gateway_rest_api.user_api.id
+  resource_id   = aws_api_gateway_resource.upload.id
+  http_method   = "POST"
+  authorization = "COGNITO_USER_POOLS"
+  authorizer_id = aws_api_gateway_authorizer.cognito_authorizer.id
+}
+
+resource "aws_api_gateway_integration" "upload_lambda" {
+  rest_api_id = aws_api_gateway_rest_api.user_api.id
+  resource_id = aws_api_gateway_resource.upload.id
+  http_method = aws_api_gateway_method.post_upload.http_method
+
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.upload_request.invoke_arn
+}
+
+# -------------------------
+# AUTHORIZER
+# -------------------------
+
+resource "aws_api_gateway_authorizer" "cognito_authorizer" {
+  name            = "cognito-authorizer"
+  rest_api_id     = aws_api_gateway_rest_api.user_api.id
+  type            = "COGNITO_USER_POOLS"
+  provider_arns   = [aws_cognito_user_pool.user_pool.arn]
+  identity_source = "method.request.header.Authorization"
 }
 
 # -------------------------
@@ -53,7 +84,6 @@ resource "aws_api_gateway_method" "post_preferences" {
   rest_api_id   = aws_api_gateway_rest_api.user_api.id
   resource_id   = aws_api_gateway_resource.preferences.id
   http_method   = "POST"
-
   authorization = "NONE"
 }
 
@@ -89,32 +119,57 @@ resource "aws_lambda_permission" "allow_apigateway_invoke_preferences" {
   source_arn = "${aws_api_gateway_rest_api.user_api.execution_arn}/*/POST/preferences"
 }
 
+resource "aws_lambda_permission" "allow_apigateway_invoke_upload" {
+  statement_id  = "AllowAPIGatewayInvokeUpload"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.upload_request.function_name
+  principal     = "apigateway.amazonaws.com"
+
+  source_arn = "${aws_api_gateway_rest_api.user_api.execution_arn}/*/POST/upload"
+}
+
 # -------------------------
 # DEPLOYMENT + STAGE
 # -------------------------
 
-  resource "aws_api_gateway_deployment" "user_api_deployment" {
+resource "aws_api_gateway_deployment" "user_api_deployment" {
   rest_api_id = aws_api_gateway_rest_api.user_api.id
 
+  depends_on = [
+    aws_api_gateway_method.post_users,
+    aws_api_gateway_method.post_upload,
+    aws_api_gateway_method.post_preferences,
+    aws_api_gateway_integration.post_users_lambda,
+    aws_api_gateway_integration.upload_lambda,
+    aws_api_gateway_integration.post_preferences_lambda,
+    aws_api_gateway_authorizer.cognito_authorizer
+  ]
+
   triggers = {
-    redeployment = sha1(jsonencode([
-      aws_api_gateway_resource.users.id,
-      aws_api_gateway_resource.preferences.id,
-      aws_api_gateway_method.post_users.id,
-      aws_api_gateway_method.post_preferences.id,
-      aws_api_gateway_integration.post_users_lambda.id,
-      aws_api_gateway_integration.post_preferences_lambda.id
-    ]))
+    redeployment = sha1(jsonencode({
+      users_resource_id               = aws_api_gateway_resource.users.id
+      upload_resource_id              = aws_api_gateway_resource.upload.id
+      preferences_resource_id         = aws_api_gateway_resource.preferences.id
+
+      post_users_method_id            = aws_api_gateway_method.post_users.id
+      post_upload_method_id           = aws_api_gateway_method.post_upload.id
+      post_preferences_method_id      = aws_api_gateway_method.post_preferences.id
+
+      post_upload_authorization       = aws_api_gateway_method.post_upload.authorization
+      post_upload_authorizer_id       = aws_api_gateway_method.post_upload.authorizer_id
+
+      post_users_integration_id       = aws_api_gateway_integration.post_users_lambda.id
+      upload_integration_id           = aws_api_gateway_integration.upload_lambda.id
+      post_preferences_integration_id = aws_api_gateway_integration.post_preferences_lambda.id
+    }))
   }
 
-  stage_name = "dev"
-
-lifecycle {
+  lifecycle {
     create_before_destroy = true
   }
 }
-  
-  resource "aws_api_gateway_stage" "dev" {
+
+resource "aws_api_gateway_stage" "dev" {
   rest_api_id   = aws_api_gateway_rest_api.user_api.id
   deployment_id = aws_api_gateway_deployment.user_api_deployment.id
   stage_name    = "dev"
