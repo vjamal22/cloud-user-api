@@ -147,16 +147,16 @@ resource "aws_api_gateway_deployment" "user_api_deployment" {
 
   triggers = {
     redeployment = sha1(jsonencode({
-      users_resource_id               = aws_api_gateway_resource.users.id
-      upload_resource_id              = aws_api_gateway_resource.upload.id
-      preferences_resource_id         = aws_api_gateway_resource.preferences.id
+      users_resource_id       = aws_api_gateway_resource.users.id
+      upload_resource_id      = aws_api_gateway_resource.upload.id
+      preferences_resource_id = aws_api_gateway_resource.preferences.id
 
-      post_users_method_id            = aws_api_gateway_method.post_users.id
-      post_upload_method_id           = aws_api_gateway_method.post_upload.id
-      post_preferences_method_id      = aws_api_gateway_method.post_preferences.id
+      post_users_method_id       = aws_api_gateway_method.post_users.id
+      post_upload_method_id      = aws_api_gateway_method.post_upload.id
+      post_preferences_method_id = aws_api_gateway_method.post_preferences.id
 
-      post_upload_authorization       = aws_api_gateway_method.post_upload.authorization
-      post_upload_authorizer_id       = aws_api_gateway_method.post_upload.authorizer_id
+      post_upload_authorization = aws_api_gateway_method.post_upload.authorization
+      post_upload_authorizer_id = aws_api_gateway_method.post_upload.authorizer_id
 
       post_users_integration_id       = aws_api_gateway_integration.post_users_lambda.id
       upload_integration_id           = aws_api_gateway_integration.upload_lambda.id

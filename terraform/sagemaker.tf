@@ -7,7 +7,7 @@ resource "aws_sagemaker_model" "plan_generator_model" {
     model_data_url = var.model_artifact_s3_uri
   }
 }
-  
+
 
 resource "aws_sagemaker_endpoint_configuration" "plan_generator_config" {
   name = "fitness-plan-generator-config"
@@ -21,6 +21,6 @@ resource "aws_sagemaker_endpoint_configuration" "plan_generator_config" {
 }
 
 resource "aws_sagemaker_endpoint" "plan_generator_endpoint" {
-  name = "fitness-plan-generator-endpoint-v2"
+  name                 = "fitness-plan-generator-endpoint-v2"
   endpoint_config_name = aws_sagemaker_endpoint_configuration.plan_generator_config.name
 }

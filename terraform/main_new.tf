@@ -1,15 +1,15 @@
 resource "aws_lambda_function" "plan_generator" {
-function_name = "fitness-plan-generator"
+  function_name = "fitness-plan-generator"
 
-filename         = "../Lambda/plan_generator.zip"
-source_code_hash = filebase64sha256("../Lambda/plan_generator.zip")
+  filename         = "../Lambda/plan_generator.zip"
+  source_code_hash = filebase64sha256("../Lambda/plan_generator.zip")
 
-handler = "plan_generator.lambda_handler"
-runtime = "python3.11"
+  handler = "plan_generator.lambda_handler"
+  runtime = "python3.11"
 
-role = aws_iam_role.lambda_execution_role.arn
+  role = aws_iam_role.lambda_execution_role.arn
 
-timeout = 30
+  timeout = 30
 }
 resource "aws_lambda_function" "upload_request" {
   function_name = "upload-request"
