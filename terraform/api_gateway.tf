@@ -98,6 +98,33 @@ resource "aws_api_gateway_integration" "post_preferences_lambda" {
 }
 
 # -------------------------
+# PLAN RESOURCE
+# -------------------------
+
+resource "aws_api_gateway_resource" "plan" {
+  rest_api_id = aws_api_gateway_rest_api.user_api.id
+  parent_id   = aws_api_gateway_rest_api.user_api.root_resource_id
+  path_part   = "plan"
+}
+
+resource "aws_api_gateway_method" "post_plan" {
+  rest_api_id   = aws_api_gateway_rest_api.user_api.id
+  resource_id   = aws_api_gateway_resource.plan.id
+  http_method   = "POST"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "post_plan_lambda" {
+  rest_api_id = aws_api_gateway_rest_api.user_api.id
+  resource_id = aws_api_gateway_resource.plan.id
+  http_method = aws_api_gateway_method.post_plan.http_method
+
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.plan_generator.invoke_arn
+}
+
+# -------------------------
 # LAMBDA PERMISSIONS
 # -------------------------
 
@@ -128,6 +155,15 @@ resource "aws_lambda_permission" "allow_apigateway_invoke_upload" {
   source_arn = "${aws_api_gateway_rest_api.user_api.execution_arn}/*/POST/upload"
 }
 
+resource "aws_lambda_permission" "allow_apigateway_invoke_plan" {
+  statement_id  = "AllowAPIGatewayInvokePlan"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.plan_generator.function_name
+  principal     = "apigateway.amazonaws.com"
+
+  source_arn = "${aws_api_gateway_rest_api.user_api.execution_arn}/*/POST/plan"
+}
+
 # -------------------------
 # DEPLOYMENT + STAGE
 # -------------------------
@@ -139,9 +175,11 @@ resource "aws_api_gateway_deployment" "user_api_deployment" {
     aws_api_gateway_method.post_users,
     aws_api_gateway_method.post_upload,
     aws_api_gateway_method.post_preferences,
+    aws_api_gateway_method.post_plan,
     aws_api_gateway_integration.post_users_lambda,
     aws_api_gateway_integration.upload_lambda,
     aws_api_gateway_integration.post_preferences_lambda,
+    aws_api_gateway_integration.post_plan_lambda,
     aws_api_gateway_authorizer.cognito_authorizer
   ]
 
@@ -150,10 +188,12 @@ resource "aws_api_gateway_deployment" "user_api_deployment" {
       users_resource_id       = aws_api_gateway_resource.users.id
       upload_resource_id      = aws_api_gateway_resource.upload.id
       preferences_resource_id = aws_api_gateway_resource.preferences.id
+      plan_resource_id        = aws_api_gateway_resource.plan.id
 
       post_users_method_id       = aws_api_gateway_method.post_users.id
       post_upload_method_id      = aws_api_gateway_method.post_upload.id
       post_preferences_method_id = aws_api_gateway_method.post_preferences.id
+      post_plan_method_id        = aws_api_gateway_method.post_plan.id
 
       post_upload_authorization = aws_api_gateway_method.post_upload.authorization
       post_upload_authorizer_id = aws_api_gateway_method.post_upload.authorizer_id
@@ -161,6 +201,7 @@ resource "aws_api_gateway_deployment" "user_api_deployment" {
       post_users_integration_id       = aws_api_gateway_integration.post_users_lambda.id
       upload_integration_id           = aws_api_gateway_integration.upload_lambda.id
       post_preferences_integration_id = aws_api_gateway_integration.post_preferences_lambda.id
+      post_plan_integration_id        = aws_api_gateway_integration.post_plan_lambda.id
     }))
   }
 
