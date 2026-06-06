@@ -6,6 +6,19 @@ dynamodb = boto3.resource("dynamodb")
 
 table = dynamodb.Table("analysis_results")
 
+
+def build_response(status_code, body):
+    return {
+        "statusCode": status_code,
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "Content-Type,Authorization",
+            "Access-Control-Allow-Methods": "OPTIONS,POST"
+        },
+        "body": json.dumps(body)
+    }
+
+
 def lambda_handler(event, context):
     bucket_name = "fitness-app-media-jamalv-2026"
 
@@ -13,12 +26,9 @@ def lambda_handler(event, context):
     image_name = body.get("image_name")
 
     if not image_name:
-        return {
-            "statusCode": 400,
-            "body": json.dumps({
-                "error": "image_name is required"
-            })
-        }
+        return build_response(400, {
+            "error": "image_name is required"
+        })
 
     try:
         response = rekognition.detect_labels(
@@ -46,18 +56,12 @@ def lambda_handler(event, context):
             }
         )
 
-        return {
-            "statusCode": 200,
-            "body": json.dumps({
-                "message": "Analysis complete",
-                "labels": labels
-            })
-        }
+        return build_response(200, {
+            "message": "Analysis complete",
+            "labels": labels
+        })
 
     except Exception as e:
-        return {
-            "statusCode": 500,
-            "body": json.dumps({
-                "error": str(e)
-            })
-        }
+        return build_response(500, {
+            "error": str(e)
+        })

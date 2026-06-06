@@ -36,3 +36,18 @@ export async function generatePlan(planData) {
 
   return response.json()
 }
+
+export async function analyzeImage(imageName, token) {
+  const response = await fetch(`${API_BASE_URL}/upload`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: token,
+    },
+    body: JSON.stringify({
+      image_name: imageName,
+    }),
+  })
+
+  return response.json()
+}

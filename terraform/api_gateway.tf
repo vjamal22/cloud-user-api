@@ -58,6 +58,50 @@ resource "aws_api_gateway_integration" "upload_lambda" {
   uri                     = aws_lambda_function.upload_request.invoke_arn
 }
 
+resource "aws_api_gateway_method" "options_upload" {
+  rest_api_id   = aws_api_gateway_rest_api.user_api.id
+  resource_id   = aws_api_gateway_resource.upload.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "options_upload_integration" {
+  rest_api_id = aws_api_gateway_rest_api.user_api.id
+  resource_id = aws_api_gateway_resource.upload.id
+  http_method = aws_api_gateway_method.options_upload.http_method
+  type        = "MOCK"
+
+  request_templates = {
+    "application/json" = "{\"statusCode\": 200}"
+  }
+}
+
+resource "aws_api_gateway_method_response" "options_upload_response" {
+  rest_api_id = aws_api_gateway_rest_api.user_api.id
+  resource_id = aws_api_gateway_resource.upload.id
+  http_method = aws_api_gateway_method.options_upload.http_method
+  status_code = "200"
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "options_upload_integration_response" {
+  rest_api_id = aws_api_gateway_rest_api.user_api.id
+  resource_id = aws_api_gateway_resource.upload.id
+  http_method = aws_api_gateway_method.options_upload.http_method
+  status_code = aws_api_gateway_method_response.options_upload_response.status_code
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,Authorization'"
+    "method.response.header.Access-Control-Allow-Methods" = "'OPTIONS,POST'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+}
+
 # -------------------------
 # AUTHORIZER
 # -------------------------
@@ -174,10 +218,14 @@ resource "aws_api_gateway_deployment" "user_api_deployment" {
   depends_on = [
     aws_api_gateway_method.post_users,
     aws_api_gateway_method.post_upload,
+    aws_api_gateway_method.options_upload,
     aws_api_gateway_method.post_preferences,
     aws_api_gateway_method.post_plan,
     aws_api_gateway_integration.post_users_lambda,
     aws_api_gateway_integration.upload_lambda,
+    aws_api_gateway_integration.options_upload_integration,
+    aws_api_gateway_method_response.options_upload_response,
+    aws_api_gateway_integration_response.options_upload_integration_response,
     aws_api_gateway_integration.post_preferences_lambda,
     aws_api_gateway_integration.post_plan_lambda,
     aws_api_gateway_authorizer.cognito_authorizer
@@ -192,6 +240,7 @@ resource "aws_api_gateway_deployment" "user_api_deployment" {
 
       post_users_method_id       = aws_api_gateway_method.post_users.id
       post_upload_method_id      = aws_api_gateway_method.post_upload.id
+      options_upload_method_id   = aws_api_gateway_method.options_upload.id
       post_preferences_method_id = aws_api_gateway_method.post_preferences.id
       post_plan_method_id        = aws_api_gateway_method.post_plan.id
 
@@ -200,6 +249,9 @@ resource "aws_api_gateway_deployment" "user_api_deployment" {
 
       post_users_integration_id       = aws_api_gateway_integration.post_users_lambda.id
       upload_integration_id           = aws_api_gateway_integration.upload_lambda.id
+      options_upload_integration_id   = aws_api_gateway_integration.options_upload_integration.id
+      options_upload_response_id      = aws_api_gateway_method_response.options_upload_response.id
+      options_upload_integration_res  = aws_api_gateway_integration_response.options_upload_integration_response.id
       post_preferences_integration_id = aws_api_gateway_integration.post_preferences_lambda.id
       post_plan_integration_id        = aws_api_gateway_integration.post_plan_lambda.id
     }))

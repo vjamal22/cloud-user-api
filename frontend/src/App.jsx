@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Authenticator } from '@aws-amplify/ui-react'
+import { fetchAuthSession } from 'aws-amplify/auth'
 import '@aws-amplify/ui-react/styles.css'
-import { createUser, generatePlan } from './api'
+import { createUser, generatePlan, analyzeImage } from './api'
 
 function App() {
   const [goal, setGoal] = useState('')
@@ -10,6 +11,9 @@ function App() {
   const [activityLevel, setActivityLevel] = useState('')
   const [workoutPlan, setWorkoutPlan] = useState([])
   const [mealPlan, setMealPlan] = useState([])
+
+  const [imageName, setImageName] = useState('')
+  const [labels, setLabels] = useState([])
 
   const profileData = {
     goal,
@@ -49,6 +53,33 @@ function App() {
     } catch (error) {
       console.error('Plan Error:', error)
       alert('Failed to generate plan')
+    }
+  }
+
+  const handleAnalyzeImage = async () => {
+    if (!imageName) {
+      alert('Please enter an image name')
+      return
+    }
+
+    try {
+      const session = await fetchAuthSession()
+      const token = session.tokens?.idToken?.toString()
+
+      const result = await analyzeImage(imageName, token)
+
+      console.log('Image Analysis Response:', result)
+
+      setLabels(result.labels || [])
+
+      if (result.error) {
+        alert(result.error)
+      } else {
+        alert('Image analysis complete')
+      }
+    } catch (error) {
+      console.error('Image Analysis Error:', error)
+      alert('Failed to analyze image')
     }
   }
 
@@ -150,6 +181,41 @@ function App() {
               </ul>
             </section>
           )}
+
+          <hr />
+
+          <section>
+            <h2>Media Analysis</h2>
+
+            <p>Enter an existing image name from S3.</p>
+
+            <input
+              type="text"
+              value={imageName}
+              onChange={(e) => setImageName(e.target.value)}
+              placeholder="Example: VD 1.png"
+            />
+
+            <br />
+            <br />
+
+            <button onClick={handleAnalyzeImage}>
+              Analyze Image
+            </button>
+
+            {labels.length > 0 && (
+              <div>
+                <h3>Detected Labels</h3>
+                <ul>
+                  {labels.map((label, index) => (
+                    <li key={index}>
+                      {label.name} - {label.confidence}%
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </section>
 
           <br />
 
