@@ -2,7 +2,13 @@ import { useState } from 'react'
 import { Authenticator } from '@aws-amplify/ui-react'
 import { fetchAuthSession } from 'aws-amplify/auth'
 import '@aws-amplify/ui-react/styles.css'
-import { createUser, generatePlan, analyzeImage } from './api'
+import {
+  createUser,
+  generatePlan,
+  analyzeImage,
+  generateUploadUrl,
+  uploadFileToS3,
+} from './api'
 
 function App() {
   const [goal, setGoal] = useState('')
@@ -13,7 +19,9 @@ function App() {
   const [mealPlan, setMealPlan] = useState([])
 
   const [imageName, setImageName] = useState('')
+  const [selectedFile, setSelectedFile] = useState(null)
   const [labels, setLabels] = useState([])
+  const [uploadStatus, setUploadStatus] = useState('')
 
   const profileData = {
     goal,
@@ -80,6 +88,70 @@ function App() {
     } catch (error) {
       console.error('Image Analysis Error:', error)
       alert('Failed to analyze image')
+    }
+  }
+
+  const handleUploadAndAnalyze = async () => {
+    if (!selectedFile) {
+      alert('Please choose an image file')
+      return
+    }
+
+    try {
+      setUploadStatus('Requesting upload URL...')
+      setLabels([])
+
+      const session = await fetchAuthSession()
+      const token = session.tokens?.idToken?.toString()
+
+      const uploadUrlResult = await generateUploadUrl(
+        selectedFile.name,
+        selectedFile.type,
+        token
+      )
+
+      console.log('Upload URL Response:', uploadUrlResult)
+
+      if (uploadUrlResult.error) {
+        alert(uploadUrlResult.error)
+        setUploadStatus('Failed to generate upload URL')
+        return
+      }
+
+      setUploadStatus('Uploading file to S3...')
+
+      const uploadResponse = await uploadFileToS3(
+        uploadUrlResult.upload_url,
+        selectedFile
+      )
+
+      if (!uploadResponse.ok) {
+        throw new Error('S3 upload failed')
+      }
+
+      setUploadStatus('Analyzing uploaded image...')
+
+      const analysisResult = await analyzeImage(
+        uploadUrlResult.image_name,
+        token
+      )
+
+      console.log('Uploaded Image Analysis Response:', analysisResult)
+
+      setLabels(analysisResult.labels || [])
+      setImageName(uploadUrlResult.image_name)
+
+      if (analysisResult.error) {
+        alert(analysisResult.error)
+        setUploadStatus('Image analysis failed')
+      } else {
+        alert('Upload and analysis complete')
+        setUploadStatus('Upload and analysis complete')
+      }
+    } catch (error) {
+      console.error('Upload and Analysis Error:', error)
+      alert('Failed to upload and analyze image')
+      setUploadStatus('Failed to upload and analyze image')
     }
   }
 
@@ -185,9 +257,30 @@ function App() {
           <hr />
 
           <section>
-            <h2>Media Analysis</h2>
+            <h2>Media Upload & Analysis</h2>
 
-            <p>Enter an existing image name from S3.</p>
+            <p>Choose a new image to upload to S3 and analyze with Rekognition.</p>
+
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setSelectedFile(e.target.files[0])}
+            />
+
+            <br />
+            <br />
+
+            <button onClick={handleUploadAndAnalyze}>
+              Upload & Analyze Image
+            </button>
+
+            {uploadStatus && <p>{uploadStatus}</p>}
+
+            <hr />
+
+            <h3>Analyze Existing S3 Image</h3>
+
+            <p>Or enter an existing image name from S3.</p>
 
             <input
               type="text"
@@ -200,8 +293,14 @@ function App() {
             <br />
 
             <button onClick={handleAnalyzeImage}>
-              Analyze Image
+              Analyze Existing Image
             </button>
+
+            {imageName && (
+              <p>
+                <strong>Current image name:</strong> {imageName}
+              </p>
+            )}
 
             {labels.length > 0 && (
               <div>
