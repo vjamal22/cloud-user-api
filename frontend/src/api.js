@@ -79,3 +79,18 @@ export async function uploadFileToS3(uploadUrl, file) {
 
   return response
 }
+
+export async function sendChatMessage(message, token) {
+  const response = await fetch(`${API_BASE_URL}/chatbot`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: token,
+    },
+    body: JSON.stringify({
+      message,
+    }),
+  })
+
+  return response.json()
+}

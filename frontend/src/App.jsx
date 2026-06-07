@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Authenticator } from '@aws-amplify/ui-react'
 import { fetchAuthSession } from 'aws-amplify/auth'
 import '@aws-amplify/ui-react/styles.css'
+import Chatbot from './components/Chatbot'
 import {
   createUser,
   generatePlan,
@@ -316,11 +317,15 @@ function App() {
             )}
           </section>
 
-          <br />
+          <hr />
 
-          <button onClick={signOut}>
-            Sign Out
-          </button>
+<Chatbot />
+
+<br />
+
+<button onClick={signOut}>
+  Sign Out
+</button>
         </main>
       )}
     </Authenticator>
