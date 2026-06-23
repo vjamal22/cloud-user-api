@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://17u9ta4fi2.execute-api.us-east-1.amazonaws.com/dev'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 export async function createUser(userData) {
   const response = await fetch(`${API_BASE_URL}/users`, {

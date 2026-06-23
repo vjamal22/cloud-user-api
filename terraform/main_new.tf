@@ -38,3 +38,15 @@ resource "aws_lambda_function" "generate_upload_url" {
 
   timeout = 10
 }
+
+resource "aws_lambda_function" "chatbot" {
+  function_name = "fitness-chatbot"
+
+  filename         = "../Lambda/lambdas/chatbot.zip"
+  source_code_hash = filebase64sha256("../Lambda/lambdas/chatbot.zip")
+
+  handler = "index.lambda_handler"
+  runtime = "python3.11"
+
+  role = aws_iam_role.lambda_execution_role.arn
+}

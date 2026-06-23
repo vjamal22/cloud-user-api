@@ -1,5 +1,8 @@
 import { useState } from 'react'
 
+import { fetchAuthSession } from 'aws-amplify/auth'
+import { sendChatMessage } from '../api'
+
 function Chatbot() {
   const [message, setMessage] = useState('')
   const [messages, setMessages] = useState([
@@ -9,25 +12,44 @@ function Chatbot() {
     },
   ])
 
-  const handleSend = () => {
-    if (!message.trim()) {
-      return
-    }
-
-    const newMessage = {
-      sender: 'You',
-      text: message,
-    }
-
-   const botReply = {
-  sender: 'Bot',
-  text: 'Thanks for your message. Chatbot backend connection is coming next.',
-}
-
-setMessages([...messages, newMessage, botReply])
-    setMessage('')
+const handleSend = async () => {
+  if (!message.trim()) {
+    return
   }
 
+  const userMessageText = message
+
+  const newMessage = {
+    sender: 'You',
+    text: userMessageText,
+  }
+
+  setMessages([...messages, newMessage])
+  setMessage('')
+
+  try {
+    const session = await fetchAuthSession()
+    const token = session.tokens?.idToken?.toString()
+
+    const result = await sendChatMessage(userMessageText, token)
+
+    const botReply = {
+      sender: 'Bot',
+    text: result.reply || result.messages?.[0]?.content || 'No response received from chatbot backend.',
+    }
+
+    setMessages((currentMessages) => [...currentMessages, botReply])
+  } catch (error) {
+    console.error('Chatbot Error:', error)
+
+    const errorReply = {
+      sender: 'Bot',
+      text: 'Sorry, the chatbot backend request failed.',
+    }
+
+    setMessages((currentMessages) => [...currentMessages, errorReply])
+  }
+}
   return (
     <section>
       <h2>Fitness Chatbot</h2>

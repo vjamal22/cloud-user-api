@@ -3,6 +3,7 @@ import { Authenticator } from '@aws-amplify/ui-react'
 import { fetchAuthSession } from 'aws-amplify/auth'
 import '@aws-amplify/ui-react/styles.css'
 import Chatbot from './components/Chatbot'
+import AnalyticsDashboard from './components/AnalyticsDashboard'
 import {
   createUser,
   generatePlan,
@@ -319,6 +320,16 @@ function App() {
 
           <hr />
 
+<hr />
+
+<AnalyticsDashboard
+  workoutPlan={workoutPlan}
+  mealPlan={mealPlan}
+  labels={labels}
+/>
+
+<hr />
+
 <Chatbot />
 
 <br />
@@ -326,6 +337,7 @@ function App() {
 <button onClick={signOut}>
   Sign Out
 </button>
+
         </main>
       )}
     </Authenticator>
